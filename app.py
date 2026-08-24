@@ -20,6 +20,8 @@ Use the sidebar to navigate:
 )
 
 st.info(
-    "The Chat Assistant page requires an `OPENAI_API_KEY` environment variable. "
-    "Without it, use the Run Models page directly — no API key needed."
+    "The Chat Assistant page asks you to paste your OpenAI API key into its sidebar. "
+    "It's kept only in your browser session — never hardcoded or written to disk — and you'll "
+    "re-enter it each time you start a new session. Without it, use the Run Models page "
+    "directly — no API key needed."
 )

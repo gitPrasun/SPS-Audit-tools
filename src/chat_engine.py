@@ -3,6 +3,11 @@
 Uses a manual tool-call loop against the OpenAI Chat Completions API, since
 Streamlit re-executes the whole script on every interaction and a plain
 request/response loop is easiest to reason about here.
+
+The OpenAI API key is supplied per call by the caller (typed into the Chat
+Assistant page's sidebar and kept in that browser session's Streamlit state)
+rather than read from an environment variable, so no key is ever hardcoded
+or shared across sessions.
 """
 from __future__ import annotations
 
@@ -25,8 +30,8 @@ SYSTEM_PROMPT = (
 )
 
 
-def get_client() -> OpenAI:
-    return OpenAI()
+def get_client(api_key: str) -> OpenAI:
+    return OpenAI(api_key=api_key)
 
 
 def new_conversation() -> list:
@@ -34,13 +39,15 @@ def new_conversation() -> list:
     return [{"role": "system", "content": SYSTEM_PROMPT}]
 
 
-def run_turn(messages: list, workspace: dict) -> list:
+def run_turn(messages: list, workspace: dict, api_key: str) -> list:
     """Run one user turn to completion (including any tool calls).
 
-    `messages` must already end with the new user message. Returns the updated
+    `messages` must already end with the new user message. `api_key` is the
+    OpenAI API key entered by the user for this session — it is never read
+    from an environment variable or persisted anywhere. Returns the updated
     list, ending with the assistant's final (non-tool-call) response.
     """
-    client = get_client()
+    client = get_client(api_key)
     execute = make_executor(workspace)
 
     while True:
