@@ -1,6 +1,4 @@
 """Chat Assistant page: talk to GPT to drive the scikit-learn workflows conversationally."""
-import os
-
 import pandas as pd
 import streamlit as st
 
@@ -18,8 +16,24 @@ if "workspace" not in st.session_state:
     st.session_state.workspace = {}
 if "chat_messages" not in st.session_state:
     st.session_state.chat_messages = new_conversation()
+if "openai_api_key" not in st.session_state:
+    st.session_state.openai_api_key = ""
 
 with st.sidebar:
+    st.subheader("OpenAI API key")
+    st.session_state.openai_api_key = st.text_input(
+        "API key",
+        value=st.session_state.openai_api_key,
+        type="password",
+        placeholder="sk-...",
+        help=(
+            "Kept only in this browser session's memory — never written to disk, "
+            "logs, or the codebase. You'll need to re-enter it if you reload the page."
+        ),
+    )
+
+    st.divider()
+
     st.subheader("Upload a dataset")
     uploaded = st.file_uploader("CSV file", type="csv", key="chat_uploader")
     if uploaded is not None:
@@ -31,10 +45,11 @@ with st.sidebar:
         st.session_state.workspace.pop("last_dataset", None)
         st.rerun()
 
-if not os.environ.get("OPENAI_API_KEY"):
+api_key = st.session_state.openai_api_key.strip()
+if not api_key:
     st.warning(
-        "Set the `OPENAI_API_KEY` environment variable to enable the chat assistant. "
-        "Use the Run Models page in the meantime."
+        "Enter your OpenAI API key in the sidebar to enable the chat assistant — it's used "
+        "only for this session and isn't stored anywhere. Use the Run Models page in the meantime."
     )
     st.stop()
 
@@ -56,7 +71,7 @@ if prompt:
         with st.spinner("Thinking..."):
             try:
                 st.session_state.chat_messages = run_turn(
-                    st.session_state.chat_messages, st.session_state.workspace
+                    st.session_state.chat_messages, st.session_state.workspace, api_key
                 )
             except Exception as exc:
                 st.error(f"The assistant hit an error: {exc}")

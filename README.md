@@ -45,20 +45,17 @@ This opens the Home page; use the sidebar to switch between **Run Models** and
 
 The **Run Models** page works out of the box — no API key needed.
 
-The **Chat Assistant** page requires an OpenAI API key:
-
-```bash
-cp .env.example .env   # then edit .env and set OPENAI_API_KEY
-export $(cat .env | xargs)   # or use your preferred way of loading env vars
-streamlit run app.py
-```
-
-Without `OPENAI_API_KEY` set, the Chat Assistant page shows a warning and the Run
-Models page still works normally.
+The **Chat Assistant** page requires an OpenAI API key, entered directly in its sidebar
+(paste it into the "OpenAI API key" field) — there's no environment variable to set up.
+The key lives only in that browser session's memory (Streamlit `session_state`); it's never
+written to disk, logged, or hardcoded anywhere in the code, and you'll need to re-enter it
+whenever you start a new session or reload the page. Until a key is entered, the Chat
+Assistant page shows a warning and the Run Models page still works normally.
 
 By default the Chat Assistant uses the `gpt-4o` model; override this with the
 `OPENAI_MODEL` environment variable (e.g. `OPENAI_MODEL=gpt-4o-mini` for a cheaper/faster
-model, or any other chat-completions model your account has access to).
+model, or any other chat-completions model your account has access to). This is just a
+model name, not a secret, so it's fine to set as a regular environment variable.
 
 ## Supported datasets & tasks
 
