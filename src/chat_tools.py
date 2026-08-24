@@ -1,9 +1,9 @@
 """Tool definitions the chat assistant can call to drive the scikit-learn workflow.
 
-Each tool is a plain Anthropic tool-schema dict; `make_executor` binds the
-tool implementations to a per-session workspace dict so the chat page can
-keep state (an uploaded CSV, the last training result) across turns without
-any global mutable state.
+Each tool is an OpenAI function-calling schema dict (chat.completions `tools`
+format); `make_executor` binds the tool implementations to a per-session
+workspace dict so the chat page can keep state (an uploaded CSV, the last
+training result) across turns without any global mutable state.
 """
 from __future__ import annotations
 
@@ -15,66 +15,81 @@ from src.models import list_models, train_and_evaluate
 
 TOOLS = [
     {
-        "name": "list_datasets",
-        "description": (
-            "List the built-in scikit-learn datasets available (Iris, Wine, Breast Cancer, "
-            "Digits, Diabetes), plus whether a CSV was uploaded by the user in this session."
-        ),
-        "input_schema": {"type": "object", "properties": {}, "additionalProperties": False},
-    },
-    {
-        "name": "describe_dataset",
-        "description": "Get the shape, columns, and dtypes for a dataset by name.",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "dataset": {
-                    "type": "string",
-                    "description": "A built-in dataset name (e.g. 'Iris') or 'uploaded' for the user's uploaded CSV.",
-                }
-            },
-            "required": ["dataset"],
-            "additionalProperties": False,
+        "type": "function",
+        "function": {
+            "name": "list_datasets",
+            "description": (
+                "List the built-in scikit-learn datasets available (Iris, Wine, Breast Cancer, "
+                "Digits, Diabetes), plus whether a CSV was uploaded by the user in this session."
+            ),
+            "parameters": {"type": "object", "properties": {}, "additionalProperties": False},
         },
     },
     {
-        "name": "list_models",
-        "description": "List the scikit-learn algorithms available for a given task.",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "task": {"type": "string", "enum": ["classification", "regression", "clustering"]}
+        "type": "function",
+        "function": {
+            "name": "describe_dataset",
+            "description": "Get the shape, columns, and dtypes for a dataset by name.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "dataset": {
+                        "type": "string",
+                        "description": "A built-in dataset name (e.g. 'Iris') or 'uploaded' for the user's uploaded CSV.",
+                    }
+                },
+                "required": ["dataset"],
+                "additionalProperties": False,
             },
-            "required": ["task"],
-            "additionalProperties": False,
         },
     },
     {
-        "name": "train_model",
-        "description": (
-            "Train and evaluate a scikit-learn model on a dataset and return its metrics. "
-            "For dataset 'uploaded', target_column is required unless task is 'clustering'."
-        ),
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "dataset": {
-                    "type": "string",
-                    "description": "A built-in dataset name (e.g. 'Iris') or 'uploaded'.",
+        "type": "function",
+        "function": {
+            "name": "list_models",
+            "description": "List the scikit-learn algorithms available for a given task.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "task": {"type": "string", "enum": ["classification", "regression", "clustering"]}
                 },
-                "task": {"type": "string", "enum": ["classification", "regression", "clustering"]},
-                "model": {"type": "string", "description": "Algorithm name, e.g. 'Random Forest'."},
-                "target_column": {
-                    "type": "string",
-                    "description": "Target column name; required for 'uploaded' on classification/regression.",
-                },
-                "test_size": {
-                    "type": "number",
-                    "description": "Fraction of the data held out for testing (default 0.25).",
-                },
+                "required": ["task"],
+                "additionalProperties": False,
             },
-            "required": ["dataset", "task", "model"],
-            "additionalProperties": False,
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "train_model",
+            "description": (
+                "Train and evaluate a scikit-learn model on a dataset and return its metrics. "
+                "For dataset 'uploaded', target_column is required unless task is 'clustering'."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "dataset": {
+                        "type": "string",
+                        "description": "A built-in dataset name (e.g. 'Iris') or 'uploaded'.",
+                    },
+                    "task": {
+                        "type": "string",
+                        "enum": ["classification", "regression", "clustering"],
+                    },
+                    "model": {"type": "string", "description": "Algorithm name, e.g. 'Random Forest'."},
+                    "target_column": {
+                        "type": "string",
+                        "description": "Target column name; required for 'uploaded' on classification/regression.",
+                    },
+                    "test_size": {
+                        "type": "number",
+                        "description": "Fraction of the data held out for testing (default 0.25).",
+                    },
+                },
+                "required": ["dataset", "task", "model"],
+                "additionalProperties": False,
+            },
         },
     },
 ]

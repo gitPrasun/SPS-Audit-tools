@@ -20,6 +20,6 @@ Use the sidebar to navigate:
 )
 
 st.info(
-    "The Chat Assistant page requires an `ANTHROPIC_API_KEY` environment variable. "
+    "The Chat Assistant page requires an `OPENAI_API_KEY` environment variable. "
     "Without it, use the Run Models page directly — no API key needed."
 )
